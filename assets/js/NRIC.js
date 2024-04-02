@@ -1,55 +1,99 @@
-var myNRICController = Marionette.Object.extend({
+var myNRICController = Marionette.Object.extend( {
     initialize: function() {
-        // On the Form Submission's field validation...
-        var submitChannel = Backbone.Radio.channel('submit');
-        this.listenTo(submitChannel, 'validate:field', this.validateNRIC);
 
-        // On the Field's model value change...
-        var fieldsChannel = Backbone.Radio.channel('fields');
-        this.listenTo(fieldsChannel, 'change:modelValue', this.validateNRIC);
+        // On the Form Submission's field validaiton...
+        // var submitChannel = Backbone.Radio.channel( 'submit' );
+        // this.listenTo( submitChannel, 'validate:field', this.validateRequired );
+
+        // on the Field's model value change...
+        // var fieldsChannel = Backbone.Radio.channel( 'fields' );
+        // this.listenTo( fieldsChannel, 'change:modelValue', this.validateRequired );
+
+        // On the Form Submission's field validaiton...
+        var submitChannel = Backbone.Radio.channel( 'submit' );
+        this.listenTo( submitChannel, 'validate:field', this.validateNRIC );
+
+        // on the Field's model value change...
+        var fieldsChannel = Backbone.Radio.channel( 'fields' );
+        this.listenTo( fieldsChannel, 'change:modelValue', this.validateNRIC );
+        
     },
 
-    validateNRIC: function(model) {
-        // Only validate a specific field type.
-        if ('nric' != model.get('type')) return;
+    // validateRequired: function( model ) {
 
+    //     // Only validate a specific fields type.
+    //     if( 'nric' != model.get( 'type' ) ) return;
+
+    //     // Check if Model has a value
+    //     if( model.get( 'value' ) && 1 == model.get( 'required' )) {
+    //         // Remove Error from Model
+    //         Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-Empty-error' );
+    //     } else if (!model.get( 'value' ) && 1 == model.get( 'required' )){
+    //         // Add Error to Model
+    //         Backbone.Radio.channel( 'fields' ).request( 'add:error', model.get( 'id' ), 'NRIC-Empty-error', 'NRIC field is empty, please enter a value.' );
+    //     }
+    // },
+
+
+    validateNRIC: function( model ) {
+
+        // Only validate a specific fields type.
+        if( 'nric' != model.get( 'type' ) ) return;
         // Get the input value for the NRIC Field
         var nricValue = model.get('value');
 
-        if (nricValue) {
-            // Remove Error Messages if blank
-            Backbone.Radio.channel('fields').request('remove:error', model.get('id'), 'NRIC-error');
-            Backbone.Radio.channel('fields').request('remove:error', model.get('id'), 'NRIC-Length-error');
-            model.removeWrapperClass('nf-pass');
+        if(nricValue) {
+            // Remove Error from Model
+            Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-Empty-error' );
 
             if (nricValue.length !== 9) {
                 // Add custom error for incorrect length
                 Backbone.Radio.channel('fields').request('add:error', model.get('id'), 'NRIC-Length-error', 'NRIC should be 9 characters long, please amend.');
-                return; // Stop further validation since length is incorrect
-            }
+                // remove the green check to show unsuccessful validation
+                model.removeWrapperClass('nf-pass');
 
-            if (this.isValidNRIC(nricValue)) {
+                return; // Stop further validation since length is incorrect
+            } 
+            else{
+                // Remove Error from Model
+                Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-Length-error' );
                 // Add the green check to show successful validation
                 model.addWrapperClass('nf-pass');
-            } else {
-                // Add Error to Model
-                Backbone.Radio.channel('fields').request('add:error', model.get('id'), 'NRIC-error', 'NRIC is not valid, please amend.');
             }
-        } else {
-            // Add Error to Model if NRIC field is empty
-            Backbone.Radio.channel('fields').request('add:error', model.get('id'), 'NRIC-error', 'NRIC field is empty, please enter a value.');
+
+            if(this.isValidNRIC(nricValue)){
+                // Remove Error from Model
+                Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-error' );
+                // Add the green check to show successful validation
+                model.addWrapperClass('nf-pass');
+            }
+            else{
+                // Add Error to Model
+                Backbone.Radio.channel( 'fields' ).request( 'add:error', model.get( 'id' ), 'NRIC-error', 'NRIC is not valid, please amend.' );
+                // remove the green check to show unsuccessful validation
+                model.removeWrapperClass('nf-pass');
+            }
+        }
+        else {
+            // Add Error to Model
+            // Backbone.Radio.channel( 'fields' ).request( 'add:error', model.get( 'id' ), 'NRIC-Empty-error', 'NRIC field is empty, please enter a value.' );
+            Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-Empty-error' );
+            Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-Length-error' );
+            Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'NRIC-error' );
         }
     },
 
     isValidNRIC: function(nric) {
-        var icArray = [];
+
+        var i, 
+        icArray = [];
         nric = nric.toUpperCase();
         
         if (!/^[STFGM]\d{7}[A-Z]$/i.test(nric)) {
             return false; // Does not follow the pattern
         }
     
-        for (var i = 0; i < 9; i++) {
+        for(i = 0; i < 9; i++) {
             icArray[i] = nric.charAt(i);
         }
 
@@ -62,15 +106,17 @@ var myNRICController = Marionette.Object.extend({
         icArray[7] = parseInt(icArray[7], 10) * 2;
 
         var weight = 0;
-        for (var j = 1; j < 8; j++) {
-            weight += icArray[j];
+        for(i = 1; i < 8; i++) {
+            weight += icArray[i];
         }
     
+        // var offset = (icArray[0] == "T" || icArray[0] == "G") ? 4:0;
         var offset = 0;
         
-        if (icArray[0] == "T" || icArray[0] == "G") {
+        if(icArray[0] == "T" || icArray[0] == "G"){
             offset += 4;
-        } else if (icArray[0] == "M") {
+        }
+        else if(icArray[0] == "M"){
             offset += 3;
         }
         
@@ -80,18 +126,18 @@ var myNRICController = Marionette.Object.extend({
         var fgm = ["X","W","U","T","R","Q","P","N","M","L","K"];
     
         var theAlpha;
-        if (icArray[0] == "S" || icArray[0] == "T") { 
-            theAlpha = st[temp]; 
-        } else if (icArray[0] == "F" || icArray[0] == "G" || icArray[0] == "M") { 
-            theAlpha = fgm[temp]; 
-        }
+        if (icArray[0] == "S" || icArray[0] == "T") { theAlpha = st[temp]; }
+        else if (icArray[0] == "F" || icArray[0] == "G" || icArray[0] == "M") { theAlpha = fgm[temp]; }
     
         return (icArray[8] === theAlpha);
     }
+        
+    
 });
 
 // On Document Ready...
-jQuery(document).ready(function($) {
+jQuery( document ).ready( function( $ ) {
+
     // Instantiate our custom field's controller, defined above.
     new myNRICController();
 });
