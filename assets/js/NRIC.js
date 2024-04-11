@@ -24,6 +24,12 @@ var myNRICController = Marionette.Object.extend( {
     //     // Only validate a specific fields type.
     //     if( 'nric' != model.get( 'type' ) ) return;
 
+    // Validate all field_key that contains 'nric'.
+    // if (!model.get('key').includes('nric')) return;
+
+    // Only validate one field_key that is equals to 'nric'.
+    // if ('nric' != model.get('key')) return;
+
     //     // Check if Model has a value
     //     if( model.get( 'value' ) && 1 == model.get( 'required' )) {
     //         // Remove Error from Model
