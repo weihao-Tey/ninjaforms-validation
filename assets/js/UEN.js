@@ -39,6 +39,13 @@ var myUENController = Marionette.Object.extend( {
 
         // Only validate a specific fields type.
         if( 'uen' != model.get( 'type' ) ) return;
+
+        // Validate all field_key that contains 'uen'.
+        // if (!model.get('key').includes('uen')) return;
+    
+        // Only validate one field_key that is equals to 'uen'.
+        // if ('uen' != model.get('key')) return;
+
         // Get the input value for the UEN Field
         var uenValue = model.get('value');
 
